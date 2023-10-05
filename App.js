@@ -1,5 +1,13 @@
 import { useState } from "react";
-import { StyleSheet, Text, View, Button, TextInput } from "react-native";
+import {
+  StyleSheet,
+  Text,
+  View,
+  Button,
+  TextInput,
+  ScrollView,
+  FlatList,
+} from "react-native";
 
 export default function App() {
   const [inputText, setInputText] = useState("");
@@ -9,8 +17,18 @@ export default function App() {
   }
 
   function addGoalHandler() {
-    setGoal((currentGoals) => [...currentGoals, inputText]);
-    setInputText("");
+    if (!inputText) {
+      alert("Please Enter Goal");
+    } else {
+      setGoal((currentGoals) => [
+        ...currentGoals,
+        //use{}is more better won't have same key error
+        // { text: inputText, key: Math.random().toString() },
+        //if data from api wont have key might id
+        { text: inputText, id: Math.random().toString() },
+      ]);
+      setInputText("");
+    }
   }
   return (
     <View style={styles.appContainer}>
@@ -23,12 +41,31 @@ export default function App() {
         />
         <Button title="Add Goal" onPress={addGoalHandler} />
       </View>
+
       <View style={styles.goalsContainer}>
-        {goals.map((goal) => (
-          <Text style={styles.goalItem} key={goal}>
-            {goal}
-          </Text>
-        ))}
+        {/* FlatList replace ScrollView becuz ScrollView will render all list when scroll, if data pretty long will make app too slow. FlatList only show when near scroll it*/}
+        {/* <ScrollView alwaysBounceVertical={false}>
+          {goals.map((goal) => (
+            <View style={styles.goalItem} key={goal}>
+              <Text style={styles.goalText}>{goal}</Text>
+            </View>
+          ))}
+        </ScrollView> */}
+        <FlatList
+          data={goals}
+          renderItem={(itemData) => {
+            return (
+              <View style={styles.goalItem}>
+                <Text style={styles.goalText}>{itemData.item.text}</Text>
+              </View>
+            );
+          }}
+          //if data from api wont have key might id
+          keyExtractor={(item, index) => {
+            return item.id;
+          }}
+          alwaysBounceVertical={false}
+        />
       </View>
     </View>
   );
@@ -65,6 +102,8 @@ const styles = StyleSheet.create({
     padding: 8,
     borderRadius: 6,
     backgroundColor: "#009999",
+  },
+  goalText: {
     color: "white",
   },
 });
